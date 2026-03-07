@@ -1,0 +1,32 @@
+version: '3.9'
+
+services:
+  registration:
+    build: .
+    ports:
+      - "3003:3003"
+    environment:
+      - NODE_ENV=development
+      - PORT=3003
+      - MONGO_URI=mongodb://mongo:27017/smart-event-db
+      - JWT_SECRET=super-secret-jwt-key-change-this
+      - EVENT_SERVICE_URL=http://event:3002/api/events
+      - USE_EVENT_MOCK=true
+    depends_on:
+      - mongo
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npm run dev   # uses nodemon for auto-reload during dev
+
+  mongo:
+    image: mongo:7
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    environment:
+      - MONGO_INITDB_DATABASE=smart-event-db
+
+volumes:
+  mongo-data:

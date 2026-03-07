@@ -1,0 +1,102 @@
+import Registration from '../models/Registration.js';
+import { checkEventAvailability } from '../utils/eventServiceClient.js';
+
+export const createRegistration = async (req, res) => {
+  try {
+    const { eventId, ticketCount = 1, notes } = req.body;
+
+    if (!eventId) {
+      return res.status(400).json({ message: 'Event ID is required' });
+    }
+
+    if (!Number.isInteger(ticketCount) || ticketCount < 1 || ticketCount > 10) {
+      return res.status(400).json({ message: 'Ticket count must be integer 1–10' });
+    }
+
+    // Forward user's JWT to Event Service (if Event Service requires auth for this endpoint)
+    const userToken = req.headers.authorization?.split(' ')[1] || null;
+
+    // 1. Check availability (real or mock)
+    const { available, eventTitle } = await checkEventAvailability(
+      eventId,
+      ticketCount,
+      userToken
+    );
+
+    // 2. Create registration
+    const registration = await Registration.create({
+    //   user: req.user.id,
+      userEmail: "xy@example.com",
+      eventId,
+      eventTitle: eventTitle || 'Unknown Event',
+      ticketCount,
+      notes: notes?.trim() || '',
+      status: 'confirmed'
+    });
+
+    // 3. (Future step) → call Notification Service here
+
+    res.status(201).json({
+      message: 'Booking confirmed!',
+      registration,
+      availableSpotsAfterBooking: available - ticketCount
+    });
+  } catch (err) {
+    console.error('Booking error:', err);
+    const status = err.message.includes('spots') || err.message.includes('availability') ? 400 : 500;
+    res.status(status).json({ message: err.message || 'Failed to create booking' });
+  }
+};
+
+export const getMyBookings = async (req, res) => {
+  try {
+    const bookings = await Registration.find({ user: req.user.id })
+      .sort({ bookedAt: -1 });
+
+    res.json(bookings);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const getEventParticipants = async (req, res) => {
+  try {
+    const { eventId } = req.params;
+
+    // In real app you would check if requester is organizer
+    // For assignment we allow anyone (you can add check later)
+
+    const participants = await Registration.find({ eventId, status: 'confirmed' })
+      .select('userEmail ticketCount bookedAt notes')
+      .sort({ bookedAt: 1 });
+
+    res.json(participants);
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const cancelRegistration = async (req, res) => {
+  try {
+    const registration = await Registration.findById(req.params.id);
+
+    if (!registration) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+
+    if (registration.user.toString() !== req.user.id) {
+      return res.status(403).json({ message: 'You can only cancel your own bookings' });
+    }
+
+    registration.status = 'cancelled';
+    await registration.save();
+
+    res.json({ message: 'Booking cancelled', registration });
+  } catch (err) {
+    res.status(500).json({ message: 'Server error' });
+  }
+};
+
+export const healthCheck = (req, res) => {
+  res.status(200).json({ status: 'ok', service: 'registration' });
+};
