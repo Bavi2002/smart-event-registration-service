@@ -1,52 +1,39 @@
 // src/utils/eventServiceClient.js
 import axios from 'axios';
 
-const EVENT_SERVICE_BASE = process.env.EVENT_SERVICE_URL || 'http://localhost:3002/api/events';
+const EVENT_BASE = process.env.EVENT_SERVICE_URL || 'http://localhost:3002/api';
 
-export const checkEventAvailability = async (eventId, requestedTickets = 1, authToken = null) => {
-  if (process.env.USE_EVENT_MOCK) {
-    console.log('[MOCK] Checking availability for event:', eventId);
-    const available = process.env.EVENT_MOCK_CAPACITY || 20;
-    if (available < requestedTickets) {
-      throw new Error(`Only ${available} spots left (requested ${requestedTickets}) - mock mode`);
-    }
-    return {
-      available,
-      eventTitle: process.env.EVENT_MOCK_TITLE || 'Mock Event Title',
-      currentBookings: 5, // fake
-      capacity: 100
-    };
-  }
+const axios = require('axios');
 
-
+export const checkAvailability = async (req, res) => {
   try {
-    const config = {};
-    if (authToken) {
-      config.headers = { Authorization: `Bearer ${authToken}` };
-    }
+    const event = await Event.findById(req.params.id);
+    if (!event) return res.status(404).json({ message: "Event not found" });
 
-    const res = await axios.get(`${EVENT_SERVICE_BASE}/${eventId}/availability`, config);
+    // Call Registration Service to count confirmed bookings
+    const regRes = await axios.get(
+      `${process.env.REGISTRATION_SERVICE_URL}/registrations/event/${event._id}`
+    );
 
-    const data = res.data;
+    const confirmedBookings = regRes.data.length; // assumes it returns array of registrations
+    const available = event.capacity - confirmedBookings;
 
-    if (!data.available || data.available < requestedTickets) {
-      throw new Error(
-        `Insufficient spots: ${data.available || 0} available, requested ${requestedTickets}`
-      );
-    }
-
-    return {
-      available: data.available,
-      eventTitle: data.eventTitle || 'Untitled Event',
-      currentBookings: data.currentBookings || 0,
-      capacity: data.capacity || 0
-    };
+    res.json({
+      available,
+      capacity: event.capacity,
+      eventTitle: event.title,
+      eventId: event._id
+    });
   } catch (err) {
-    console.error('Event Service call failed:', err.message);
-    if (err.response) {
-      throw new Error(err.response.data?.message || 'Event availability check failed');
-    }
-    throw new Error('Cannot reach Event Service – is it running?');
+    console.error("Failed to count bookings:", err.message);
+    // Fallback: use placeholder
+    res.json({
+      available: event.capacity,
+      capacity: event.capacity,
+      eventTitle: event.title,
+      eventId: event._id,
+      note: "Using fallback count"
+    });
   }
 };
 

@@ -10,7 +10,7 @@ export const protect = (req, res, next) => {
 
       req.user = {
         id: decoded.id,
-        email: decoded.email   // we expect email in payload from User Service
+        email: decoded.email  
       };
 
       next();
