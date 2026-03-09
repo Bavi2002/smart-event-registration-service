@@ -3,9 +3,7 @@ import axios from 'axios';
 
 const EVENT_BASE = process.env.EVENT_SERVICE_URL || 'http://localhost:3002/api';
 
-const axios = require('axios');
-
-export const checkAvailability = async (req, res) => {
+export const checkEventAvailability = async (req, res) => {
   try {
     const event = await Event.findById(req.params.id);
     if (!event) return res.status(404).json({ message: "Event not found" });
