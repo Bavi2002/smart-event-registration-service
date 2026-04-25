@@ -6,7 +6,6 @@ const NOTIF_BASE = process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:300
 export const sendBookingConfirmation = async (registration, token = null) => {
   try {
     const payload = {
-      userId: registration.user.toString(),
       userEmail: registration.userEmail,          // you already have it
       eventId: registration.eventId,
       eventTitle: registration.eventTitle,
