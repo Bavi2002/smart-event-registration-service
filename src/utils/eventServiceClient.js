@@ -2,13 +2,13 @@
 import axios from "axios";
 
 const EVENT_SERVICE_BASE =
-  process.env.EVENT_SERVICE_URL/api/events || "http://localhost:3002/api/events";
+  process.env.EVENT_SERVICE_URL || "http://localhost:3002/api/events";
 
 // Call Event Service availability endpoint
 export const checkEventAvailability = async (eventId) => {
   try {
     const res = await axios.get(
-      `${EVENT_SERVICE_BASE}/${eventId}/availability`
+      `${EVENT_SERVICE_BASE}/${eventId}/availability`,
     );
 
     return {
@@ -29,5 +29,27 @@ export const getEventDetails = async (eventId) => {
     return res.data;
   } catch (err) {
     throw new Error("Failed to fetch event details");
+  }
+};
+
+export const updateEventCapacity = async (eventId, newCapacity, token) => {
+  try {
+    console.log(
+      `Updating event ${eventId} capacity to ${newCapacity} with token ${token ? "provided" : "not provided"}`,
+    );
+    const config = token
+      ? { headers: { Authorization: `Bearer ${token}` } }
+      : {};
+
+    const res = await axios.put(
+      `${EVENT_SERVICE_BASE}/${eventId}`,
+      { capacity: newCapacity },
+      config,
+    );
+    console.log(`Event ${eventId} capacity updated successfully:`, res.data);
+    return res.data;
+  } catch (err) {
+    console.error("Update event failed:", err.message);
+    throw new Error("Failed to update event capacity");
   }
 };

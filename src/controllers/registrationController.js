@@ -1,10 +1,10 @@
 import Registration from "../models/Registration.js";
 import { sendBookingConfirmation } from "../utils/notificationServiceClient.js";
-import { checkEventAvailability, getEventDetails } from "../utils/eventServiceClient.js";
+import { checkEventAvailability, getEventDetails, updateEventCapacity } from "../utils/eventServiceClient.js";
 
 export const createRegistration = async (req, res) => {
   try {
-    const { eventId, ticketCount = 1, notes } = req.body;
+    const { eventId, ticketCount, notes } = req.body;
 
     if (!eventId) {
       return res.status(400).json({ message: "eventId is required" });
@@ -20,6 +20,7 @@ export const createRegistration = async (req, res) => {
 
     // 1. Check availability from Event Service
     const { available } = await checkEventAvailability(eventId);
+    console.log(`Event ${eventId} availability: ${available} spots left`);
 
     if (available < ticketCount) {
       return res.status(400).json({
@@ -29,10 +30,11 @@ export const createRegistration = async (req, res) => {
 
     // 2. Get event details (for title)
     const event = await getEventDetails(eventId);
+    console.log(`Event details for ${eventId}:`, event);
 
     // 3. Prevent double booking
     const existingBooking = await Registration.findOne({
-      user: req.user.id,
+      userEmail: req.user.email,
       eventId,
       status: "confirmed",
     });
@@ -42,10 +44,9 @@ export const createRegistration = async (req, res) => {
         message: "You already booked this event",
       });
     }
-
+console.log("User:", req.user);
     // 4. Create registration
     const registration = await Registration.create({
-      user: req.user.id,
       userEmail: req.user.email,
       eventId,
       eventTitle: event.title,
@@ -55,13 +56,19 @@ export const createRegistration = async (req, res) => {
       bookedAt: new Date(),
     });
 
+    console.log(`Created registration ${registration._id} for user ${req.user.id} on event ${eventId}`);
     // 5. Send notification (non-blocking)
     await sendBookingConfirmation(registration, token);
+
+    const newCapacity = available - ticketCount;
+    console.log(`Updating event ${eventId} capacity to ${newCapacity}`);
+
+    await updateEventCapacity(eventId, newCapacity, token);
 
     res.status(201).json({
       message: "Booking confirmed",
       registration,
-      remainingSpots: available - ticketCount,
+      remainingSpots: newCapacity,
     });
   } catch (error) {
     console.error("Booking failed:", error);
@@ -76,7 +83,7 @@ export const createRegistration = async (req, res) => {
 
 export const getMyBookings = async (req, res) => {
   try {
-    const bookings = await Registration.find({ user: req.user.id }).sort({
+    const bookings = await Registration.find({ userEmail: req.user.email }).sort({
       bookedAt: -1,
     });
 
@@ -114,7 +121,7 @@ export const cancelRegistration = async (req, res) => {
       return res.status(404).json({ message: "Booking not found" });
     }
 
-    if (registration.user.toString() !== req.user.id) {
+    if (registration.userEmail !== req.user.email) {
       return res
         .status(403)
         .json({ message: "You can only cancel your own bookings" });

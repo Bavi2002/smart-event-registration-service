@@ -4,6 +4,7 @@ import helmet from 'helmet';
 import dotenv from 'dotenv';
 import connectDB from './src/config/db.js';
 import registrationRoutes from './src/routes/registrationRoutes.js';
+import swaggerRoutes from "./src/routes/swagger.js";
 
 dotenv.config();
 
@@ -16,6 +17,8 @@ app.use(express.json());
 
 // Routes
 app.use('/api/registrations', registrationRoutes);
+
+app.use("/api-docs", swaggerRoutes);
 
 // Health endpoint at root (some orchestrators expect it)
 app.get('/health', (req, res) => res.status(200).json({ status: 'ok' }));
