@@ -1,7 +1,7 @@
 // src/utils/notificationServiceClient.js
 import axios from 'axios';
 
-const NOTIF_BASE = process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3004/api';
+const NOTIF_BASE = process.env.NOTIFICATION_SERVICE_URL/api/notifications || 'http://localhost:3004/api/notifications';
 
 export const sendBookingConfirmation = async (registration, token = null) => {
   try {
@@ -15,14 +15,11 @@ export const sendBookingConfirmation = async (registration, token = null) => {
       // totalPrice: optional – add if you calculate it later
     };
 
-    const config = token
-      ? { headers: { Authorization: `Bearer ${token}` } }
-      : {};
+
 
     const res = await axios.post(
-      `${NOTIF_BASE}/notifications/booking-confirmation`,
-      payload,
-      config
+      `${NOTIF_BASE}/booking-confirmation`,
+      payload
     );
 
     console.log('[Notification] Success:', res.data);

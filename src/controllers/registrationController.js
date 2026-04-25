@@ -1,6 +1,6 @@
 import Registration from "../models/Registration.js";
-import { checkEventAvailability } from "../utils/eventServiceClient.js";
 import { sendBookingConfirmation } from "../utils/notificationServiceClient.js";
+import { checkEventAvailability, getEventDetails } from "../utils/eventServiceClient.js";
 
 export const createRegistration = async (req, res) => {
   try {
@@ -11,21 +11,26 @@ export const createRegistration = async (req, res) => {
     }
 
     if (!Number.isInteger(ticketCount) || ticketCount < 1 || ticketCount > 10) {
-      return res
-        .status(400)
-        .json({ message: "ticketCount must be integer 1–10" });
+      return res.status(400).json({
+        message: "ticketCount must be integer 1–10",
+      });
     }
 
     const token = req.headers.authorization?.split(" ")[1];
 
     // 1. Check availability from Event Service
-    const { available, eventTitle } = await checkEventAvailability(
-      eventId,
-      ticketCount,
-      token,
-    );
+    const { available } = await checkEventAvailability(eventId);
 
-    // 2. Prevent double booking (same user + same event)
+    if (available < ticketCount) {
+      return res.status(400).json({
+        message: `Only ${available} spots remaining`,
+      });
+    }
+
+    // 2. Get event details (for title)
+    const event = await getEventDetails(eventId);
+
+    // 3. Prevent double booking
     const existingBooking = await Registration.findOne({
       user: req.user.id,
       eventId,
@@ -33,22 +38,24 @@ export const createRegistration = async (req, res) => {
     });
 
     if (existingBooking) {
-      return res.status(409).json({ message: "You already booked this event" });
+      return res.status(409).json({
+        message: "You already booked this event",
+      });
     }
 
-    // 3. Create registration
+    // 4. Create registration
     const registration = await Registration.create({
       user: req.user.id,
       userEmail: req.user.email,
       eventId,
-      eventTitle,
+      eventTitle: event.title,
       ticketCount,
       notes: notes?.trim() || "",
       status: "confirmed",
       bookedAt: new Date(),
     });
 
-    // 4. Send confirmation via Notification Service (non-blocking)
+    // 5. Send notification (non-blocking)
     await sendBookingConfirmation(registration, token);
 
     res.status(201).json({
@@ -58,10 +65,12 @@ export const createRegistration = async (req, res) => {
     });
   } catch (error) {
     console.error("Booking failed:", error);
+
     const status = error.message.includes("spots") ? 400 : 500;
-    res
-      .status(status)
-      .json({ message: error.message || "Failed to create booking" });
+
+    res.status(status).json({
+      message: error.message || "Failed to create booking",
+    });
   }
 };
 
