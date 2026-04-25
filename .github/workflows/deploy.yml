@@ -21,8 +21,8 @@ jobs:
       - name: Configure AWS Credentials (OIDC)
         uses: aws-actions/configure-aws-credentials@v4
         with:
-          role-to-assume: arn:aws:iam::503561435040:role/github-actions-ecr-push-role  # ← YOUR ROLE ARN
-          aws-region: us-east-1                                                      # ← YOUR REGION
+          role-to-assume: arn:aws:iam::503561435040:role/github-actions-ecr-push-role
+          aws-region: us-east-1
           role-session-name: GitHubActions-${{ github.run_id }}
 
       - name: Login to Amazon ECR
@@ -40,6 +40,14 @@ jobs:
           tags: ${{ steps.login-ecr.outputs.registry }}/smart-event-registration:${{ github.sha }}, ${{ steps.login-ecr.outputs.registry }}/smart-event-registration:latest
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      # ✅ FIXED ECS DEPLOY STEP
+      - name: Force ECS deployment
+        run: |
+          aws ecs update-service \
+            --cluster smart-event-cluster \
+            --service smart-event-registration-task-service-4b4yv8rr  \
+            --force-new-deployment
 
       - name: Image digest
         run: echo "Pushed image digest for smart-event-registration:${{ github.sha }}"
