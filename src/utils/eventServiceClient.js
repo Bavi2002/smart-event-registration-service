@@ -2,7 +2,7 @@
 import axios from "axios";
 
 const EVENT_SERVICE_BASE =
-  process.env.EVENT_SERVICE_URL || "http://localhost:3002/api/events";
+  process.env.EVENT_SERVICE_URL || "http://127.0.0.1:3006/api/events";
 
 // Call Event Service availability endpoint
 export const checkEventAvailability = async (eventId) => {
