@@ -139,3 +139,6 @@ export const cancelRegistration = async (req, res) => {
 export const healthCheck = (req, res) => {
   res.status(200).json({ status: "ok", service: "registration" });
 };
+
+
+
