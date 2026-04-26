@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const NOTIF_BASE = process.env.NOTIFICATION_SERVICE_URL || 'http://127.0.0.1:3006/api/notifications';
+const NOTIF_BASE = process.env.NOTIFICATION_SERVICE_URL || 'http://127.0.0.1:3005/api/notifications';
 
 export const sendBookingConfirmation = async (registration, token = null) => {
   try {
