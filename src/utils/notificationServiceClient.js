@@ -23,7 +23,6 @@ export const sendBookingConfirmation = async (registration, token = null) => {
       config
     );
 
-    console.log('[Notification] Success:', res.data);
   } catch (err) {
     console.error('[Notification] Failed:', err.message, err.response?.data);
   }

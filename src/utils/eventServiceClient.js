@@ -31,9 +31,7 @@ export const getEventDetails = async (eventId) => {
 
 export const updateEventCapacity = async (eventId, newCapacity, token) => {
   try {
-    console.log(
-      `Updating event ${eventId} capacity to ${newCapacity} with token ${token ? "provided" : "not provided"}`,
-    );
+
     const config = token
       ? { headers: { Authorization: `Bearer ${token}` } }
       : {};
@@ -43,7 +41,6 @@ export const updateEventCapacity = async (eventId, newCapacity, token) => {
       { capacity: newCapacity },
       config,
     );
-    console.log(`Event ${eventId} capacity updated successfully:`, res.data);
     return res.data;
   } catch (err) {
     console.error("Update event failed:", err.message);

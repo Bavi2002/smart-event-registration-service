@@ -20,7 +20,6 @@ export const createRegistration = async (req, res) => {
 
     // 1. Check availability from Event Service
     const { available } = await checkEventAvailability(eventId);
-    console.log(`Event ${eventId} availability: ${available} spots left`);
 
     if (available < ticketCount) {
       return res.status(400).json({
@@ -30,7 +29,6 @@ export const createRegistration = async (req, res) => {
 
     // 2. Get event details (for title)
     const event = await getEventDetails(eventId);
-    console.log(`Event details for ${eventId}:`, event);
 
     // 3. Prevent double booking
     const existingBooking = await Registration.findOne({
@@ -44,7 +42,6 @@ export const createRegistration = async (req, res) => {
         message: "You already booked this event",
       });
     }
-console.log("User:", req.user);
     // 4. Create registration
     const registration = await Registration.create({
       userEmail: req.user.email,
@@ -56,12 +53,10 @@ console.log("User:", req.user);
       bookedAt: new Date(),
     });
 
-    console.log(`Created registration ${registration._id} for user ${req.user.id} on event ${eventId}`);
     // 5. Send notification (non-blocking)
     await sendBookingConfirmation(registration, token);
 
     const newCapacity = available - ticketCount;
-    console.log(`Updating event ${eventId} capacity to ${newCapacity}`);
 
     await updateEventCapacity(eventId, newCapacity, token);
 
