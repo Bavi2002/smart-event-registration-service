@@ -5,7 +5,7 @@ const NOTIF_BASE = process.env.NOTIFICATION_SERVICE_URL || 'http://127.0.0.1:300
 export const sendBookingConfirmation = async (registration, token = null) => {
   try {
     const payload = {
-      userEmail: registration.userEmail,         
+      userEmail: registration.userEmail,
       eventId: registration.eventId,
       eventTitle: registration.eventTitle,
       ticketCount: registration.ticketCount,
@@ -13,11 +13,11 @@ export const sendBookingConfirmation = async (registration, token = null) => {
       // totalPrice: 
     };
 
-   const config = token
+    const config = token
       ? { headers: { Authorization: `Bearer ${token}` } }
       : {};
 
-    const res = await axios.post(
+    await axios.post(
       `${NOTIF_BASE}/booking-confirmation`,
       payload,
       config

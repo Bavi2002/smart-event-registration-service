@@ -25,7 +25,9 @@ export const getEventDetails = async (eventId) => {
     const res = await axios.get(`${EVENT_SERVICE_BASE}/${eventId}`);
     return res.data;
   } catch (err) {
-    throw new Error("Failed to fetch event details");
+    throw new Error(
+      `Failed to fetch event details for eventId=${eventId}: ${err.message}`
+    );
   }
 };
 
