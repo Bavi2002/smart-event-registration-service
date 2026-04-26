@@ -97,8 +97,6 @@ export const getEventParticipants = async (req, res) => {
   try {
     const { eventId } = req.params;
 
-    // In real app you would check if requester is organizer
-    // For assignment we allow anyone (you can add check later)
 
     const participants = await Registration.find({
       eventId,

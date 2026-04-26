@@ -1,4 +1,3 @@
-// src/utils/notificationServiceClient.js
 import axios from 'axios';
 
 const NOTIF_BASE = process.env.NOTIFICATION_SERVICE_URL || 'http://127.0.0.1:3006/api/notifications';
@@ -6,12 +5,12 @@ const NOTIF_BASE = process.env.NOTIFICATION_SERVICE_URL || 'http://127.0.0.1:300
 export const sendBookingConfirmation = async (registration, token = null) => {
   try {
     const payload = {
-      userEmail: registration.userEmail,          // you already have it
+      userEmail: registration.userEmail,         
       eventId: registration.eventId,
       eventTitle: registration.eventTitle,
       ticketCount: registration.ticketCount,
       bookingId: registration._id.toString(),
-      // totalPrice: optional – add if you calculate it later
+      // totalPrice: 
     };
 
    const config = token
@@ -27,6 +26,5 @@ export const sendBookingConfirmation = async (registration, token = null) => {
     console.log('[Notification] Success:', res.data);
   } catch (err) {
     console.error('[Notification] Failed:', err.message, err.response?.data);
-    // Non-blocking – do not throw
   }
 };

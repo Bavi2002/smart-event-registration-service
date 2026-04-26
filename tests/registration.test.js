@@ -2,9 +2,9 @@ import request from "supertest";
 import express from "express";
 import { jest } from "@jest/globals";
 
-// =========================
-// 🔥 MOCK AUTH (FIX 401 ERROR)
-// =========================
+
+// MOCK AUTH (FIX 401 ERROR)
+
 jest.mock("../src/middleware/auth.js", () => ({
   protect: (req, res, next) => {
     req.user = {
@@ -15,9 +15,9 @@ jest.mock("../src/middleware/auth.js", () => ({
   },
 }));
 
-// =========================
-// 🔥 MOCK DEPENDENCIES
-// =========================
+
+// MOCK DEPENDENCIES
+
 jest.mock("../src/models/Registration.js");
 jest.mock("../src/utils/eventServiceClient.js");
 jest.mock("../src/utils/notificationServiceClient.js");
@@ -28,16 +28,12 @@ import * as eventService from "../src/utils/eventServiceClient.js";
 import * as notificationService from "../src/utils/notificationServiceClient.js";
 import registrationRoutes from "../src/routes/registrationRoutes.js";
 
-// =========================
-// APP SETUP
-// =========================
+
 const app = express();
 app.use(express.json());
 app.use("/api/registrations", registrationRoutes);
 
-// =========================
-// TEST SUITE
-// =========================
+
 describe("Registration Service API", () => {
   beforeEach(() => {
     jest.clearAllMocks();

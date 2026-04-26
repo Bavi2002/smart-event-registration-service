@@ -1,10 +1,8 @@
-// src/utils/eventServiceClient.js
 import axios from "axios";
 
 const EVENT_SERVICE_BASE =
   process.env.EVENT_SERVICE_URL || "http://127.0.0.1:3006/api/events";
 
-// Call Event Service availability endpoint
 export const checkEventAvailability = async (eventId) => {
   try {
     const res = await axios.get(
@@ -22,7 +20,6 @@ export const checkEventAvailability = async (eventId) => {
   }
 };
 
-// Optional: get event details
 export const getEventDetails = async (eventId) => {
   try {
     const res = await axios.get(`${EVENT_SERVICE_BASE}/${eventId}`);

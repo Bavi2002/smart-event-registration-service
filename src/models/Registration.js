@@ -1,24 +1,23 @@
-// src/models/Registration.js
 
 import { Schema, model } from 'mongoose';
 
 const registrationSchema = new Schema({
 //   user: {
 //     type: Schema.Types.ObjectId,
-//     ref: 'User',           // reference – but we won't populate from other DB
+//     ref: 'User',           
 //     required: true
 //   },
-  userEmail: {             // denormalized copy – faster & no cross-DB join
+  userEmail: {             
     type: String,
     required: true,
     trim: true,
     lowercase: true
   },
   eventId: {
-    type: String,          // we'll store Event Service's event _id as string
+    type: String,         
     required: true
   },
-  eventTitle: {            // denormalized – snapshot at booking time
+  eventTitle: {           
     type: String,
     required: true
   },
@@ -35,7 +34,7 @@ const registrationSchema = new Schema({
     type: Number,
     default: 1,
     min: 1,
-    max: 10               // reasonable business limit
+    max: 10               
   },
   notes: {
     type: String,
@@ -46,7 +45,6 @@ const registrationSchema = new Schema({
   timestamps: true
 });
 
-// Compound index – fast lookup for user's bookings & event participants
 registrationSchema.index({ user: 1, eventId: 1 });
 registrationSchema.index({ eventId: 1, status: 1 });
 

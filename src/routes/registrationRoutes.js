@@ -14,7 +14,6 @@ const router = express.Router();
 
 const limiter = rateLimit({ windowMs: 60 * 1000, max: 10 });
 
-// 🔐 Protected routes
 router.route('/')
   .post(protect, limiter, validateBooking, createRegistration);
 
@@ -24,7 +23,6 @@ router.route('/my-bookings')
 router.route('/:id')
   .delete(protect, cancelRegistration);
 
-// 🌐 Public routes
 router.route('/event/:eventId')
   .get(getEventParticipants);
 
